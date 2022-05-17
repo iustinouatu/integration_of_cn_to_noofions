@@ -1,0 +1,16 @@
+N_SIM=1000
+for ((j = 1; j <= $N_SIM; j++))
+do
+    [ "$(jobs -pr | wc -l)" -ge 2 ] && wait -n
+    index=$((j))
+    a0=$(awk "NR==${index} { print \$2 }" Intensity_Wcm2_versus_a0_10_20_10_25_range_1000samples.txt)
+    dirname="a0_${a0}"
+    mkdir -p $dirname
+    cd $dirname
+    awk -v s="a0=${a0}" 'NR==6 {print s} 1 {print}' ../integration_optimized_numpy_Xenon_RRon_dicts_powerbase_maxpower.py > integration_optimized_numpy_Xenon_RRon_dicts_powerbase_maxpower_a0included.py
+    mpirun -n 1 python3 integration_optimized_numpy_Xenon_RRon_dicts_powerbase_maxpower_a0included.py 2&> integration_Xenon_RRon_powerbase_maxpower.log &
+    echo We launched integral number:
+    echo $j
+    echo Out of 1,000 integrals
+    cd ..
+done
